@@ -14,6 +14,8 @@ from ffmpy import FFmpeg
 app = Flask(__name__)
 app.config["DEBUG"] = True
 app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['EXECUTOR_TYPE'] = 'thread'
+app.config['EXECUTOR_MAX_WORKERS'] = 5
 executor = Executor(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -75,10 +77,12 @@ def scrap_video():
 		response = jsonify({'status': 'error', 'code': 'scrape/invalid link', 'message': 'Error processing video link.'  }), 200
 		return response
 
-	executor.submit(download_video(link))
+	executor.submit(download_video, link)
+	# download_video.submit(link)
 	response = jsonify({'data': {'link': link }}), 200
 	return response
-	 
+
+# @executor.job
 def download_video(link):
 	identifier = str(uuid.uuid4())
 	ydl_opts = {
@@ -91,7 +95,7 @@ def download_video(link):
 
 	# Download the thumbnail
 	thumbnail_url = info_dict['thumbnail']
-	thumbnail_filename = thumbnail_url.split("/")[-1]
+	thumbnail_filename = 'thumbnail.' + thumbnail_url.split(".")[-1]
 	thumbnail_filepath = os.getcwd() + '/static/' + identifier + '/' + thumbnail_filename
 	r = requests.get(thumbnail_url, stream = True)
 	if r.status_code == 200:
@@ -112,7 +116,7 @@ def download_video(link):
 	metadata['title'] = info_dict['title']
 	metadata['filename'] = '/static/{}/{}.{}'.format(identifier, info_dict['title'], info_dict['ext'])
 	metadata['duration'] = info_dict['duration']
-	metadata['thumbnail'] = thumbnail_filepath
+	metadata['thumbnail'] = '/static/{}/{}'.format(identifier, thumbnail_filename)
 	metadata['previews'] = ['/static/' + identifier + '/previews/'  + f.name for f in os.scandir(previews_filepath) if f.is_file()]
 
 
@@ -127,9 +131,10 @@ def get_videos():
 	video_dirs = [os.getcwd() + '/static/' + f.name for f in os.scandir(os.getcwd() + '/static/') if f.is_dir()]
 	videos = []
 	for video_dir in video_dirs:
-		with open(video_dir + '/metadata.txt') as file:
-			metadata = json.load(file)
-		videos.append(metadata)
+		if os.path.exists(video_dir + '/metadata.txt'):
+			with open(video_dir + '/metadata.txt') as file:
+				metadata = json.load(file)
+			videos.append(metadata)
 	response = jsonify({'data': {'videos': videos}}), 200
 	return response
 
