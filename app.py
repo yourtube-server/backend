@@ -138,4 +138,5 @@ def get_videos():
 	response = jsonify({'data': {'videos': videos}}), 200
 	return response
 
-app.run()
+if __name__ == '__main__':
+    app.run()
