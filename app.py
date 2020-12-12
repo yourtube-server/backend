@@ -87,8 +87,9 @@ def download_video(link):
 	identifier = str(uuid.uuid4())
 	ydl_opts = {
 		'format': 'bestaudio/best',
-		'outtmpl': os.getcwd() + '/static/' + identifier + '/' + '%(title)s.%(ext)s',
-		'noplaylist': True
+		'outtmpl': os.getcwd() + '/static/' + identifier + '/' + '%(title)s.mp4',
+		'noplaylist': True,
+		'merge_output_format': 'mp4'
 	}
 	with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 		info_dict = ydl.extract_info(link, download=True) 
@@ -107,7 +108,7 @@ def download_video(link):
 	# use ffmpeg to create previews (for use in the scrubber)
 	previews_filepath = os.getcwd() + '/static/' + identifier + '/previews/' 
 	os.mkdir(previews_filepath)
-	video = os.getcwd() + '/static/{}/{}.{}'.format(identifier, info_dict['title'], info_dict['ext'])
+	video = os.getcwd() + '/static/{}/{}.{}'.format(identifier, info_dict['title'], 'mp4')
 	ff = FFmpeg(inputs={video: None}, outputs={previews_filepath + "img%03d.png": ['-vf', 'fps=1/20']})
 	ff.run()
 
