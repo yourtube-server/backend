@@ -86,7 +86,7 @@ def scrap_video():
 def download_video(link):
 	identifier = str(uuid.uuid4())
 	ydl_opts = {
-		'format': 'bestaudio/best',
+		'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
 		'outtmpl': os.getcwd() + '/static/' + identifier + '/' + '%(title)s.mp4',
 		'noplaylist': True,
 		'merge_output_format': 'mp4'
