@@ -1,5 +1,5 @@
 #!/bin/bash
 
-pip3 install -r /static/requirements.txt
+pip3 install -r static/requirements.txt
 
-python api.py 
+python3 api.py 
